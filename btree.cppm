@@ -41,6 +41,25 @@ public:
     db::nnid s{};
     return retrieve(y, &s);
   }
-  [[nodiscard]] bool has(db::nnid y) const { return get(y) != mno::opt<Tp>{}; }
+  [[nodiscard]] bool has(db::nnid y) const { return !!get(y); }
+
+  bool insert(db::nnid y, Tp v) {
+    db::nnid s{};
+    auto r = retrieve(y, &s);
+    if (r)
+      return false;
+    if (s) {
+      m_root = db::current()->create_node({}, true);
+      s = m_root;
+    }
+
+    auto node = db::current()->read<Tp>(s);
+    if (node.size == db::node_limit) {
+      // split
+    }
+
+    // add y to s
+    return true;
+  }
 };
 }; // namespace btree
