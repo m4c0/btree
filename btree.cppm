@@ -1,11 +1,12 @@
 export module btree;
 export import :db;
+export import missingno;
 
 namespace btree {
 export template <typename Tp> class tree {
   db::nnid m_root{};
 
-  bool retrieve(db::nnid y, db::nnid *s) const {
+  mno::opt<Tp> retrieve(db::nnid y, db::nnid *s) const {
     db::nnid p = m_root;
     *s = {};
 
@@ -23,7 +24,7 @@ export template <typename Tp> class tree {
         auto xi = node.k[i].xi;
         auto xi1 = node.k[i + 1].xi;
         if (y == xi) {
-          return true;
+          return mno::opt<Tp>{node.ai[i]};
         }
         if (xi < y && y < xi1) {
           p = node.k[i].pi;
@@ -32,13 +33,14 @@ export template <typename Tp> class tree {
       }
       p = node.k[node.size].pi;
     }
-    return false;
+    return {};
   }
 
 public:
-  bool has(db::nnid y) const {
+  [[nodiscard]] mno::opt<Tp> get(db::nnid y) const {
     db::nnid s{};
     return retrieve(y, &s);
   }
+  [[nodiscard]] bool has(db::nnid y) const { return get(y) != mno::opt<Tp>{}; }
 };
 }; // namespace btree
