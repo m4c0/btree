@@ -25,8 +25,9 @@ public:
   }
 };
 
-struct key {
+template <typename Tp> struct key {
   nnid xi{};
+  Tp ai{};
   nnid pi{};
 };
 
@@ -36,11 +37,10 @@ template <> struct node<void> {
   bool leaf{};
   bool in_use{};
   unsigned size{};
-  nnid p0{};
-  key k[node_limit + 1]{};
 };
 template <typename Tp> struct node : node<void> {
-  Tp ai[node_limit + 1]{};
+  nnid p0{};
+  key<Tp> k[node_limit + 1]{};
 };
 
 template <typename Tp> class alpha_storage;
@@ -115,7 +115,6 @@ public:
   void set_parent(nnid n, nnid p) { m_nodes->get(n, true).parent = p; }
 
   template <typename Tp> void add_item(nnid p, nnid x, Tp v) {
-    silog::log(silog::debug, "add item %d %d", p.index(), x.index());
     auto &node = get<Tp>(p);
     if (!node.leaf) {
       silog::log(silog::error, "non-leaf insertion");
@@ -125,8 +124,7 @@ public:
       silog::log(silog::error, "btree node overflow");
       throw inconsistency_error{};
     }
-    node.k[node.size].xi = x;
-    node.ai[node.size] = v;
+    node.k[node.size] = {.xi = x, .ai = v};
     node.size++;
   }
 };

@@ -24,7 +24,7 @@ export template <typename Tp> class tree {
         auto xi = node.k[i].xi;
         auto xi1 = node.k[i + 1].xi;
         if (y == xi) {
-          return mno::opt<Tp>{node.ai[i]};
+          return mno::opt<Tp>{node.k[i].ai};
         }
         if (xi < y && y < xi1) {
           p = node.k[i].pi;
