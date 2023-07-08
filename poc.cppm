@@ -1,7 +1,8 @@
 export module poc;
 import btree;
+import silog;
 
-extern "C" int main() {
+int run() {
   using id = btree::db::nnid;
 
   btree::db::storage s{0L};
@@ -15,4 +16,12 @@ extern "C" int main() {
   }
 
   return t.has(id{99}) ? 0 : 1;
+}
+extern "C" int main() {
+  try {
+    return run();
+  } catch (btree::db::inconsistency_error) {
+    silog::log(silog::error, "db error");
+    return 1;
+  }
 }
