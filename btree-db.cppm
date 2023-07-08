@@ -91,11 +91,15 @@ public:
 class storage {
   hai::uptr<alpha_storage<void>> m_nodes;
 
+  template <typename Tp> [[nodiscard]] node<Tp> &get(nnid id) {
+    return static_cast<node<Tp> &>(m_nodes->get(id, true));
+  }
+
 public:
   template <typename Tp> storage(Tp) : m_nodes{new alpha_storage<Tp>()} {}
 
   template <typename Tp> [[nodiscard]] const node<Tp> &read(nnid id) {
-    return static_cast<node<Tp> &>(m_nodes->get(id, true));
+    return get<Tp>(id);
   }
 
   [[nodiscard]] nnid create_node(nnid p, bool leaf) {
@@ -109,6 +113,22 @@ public:
   void delete_node(nnid n) { m_nodes->get(n, true) = {}; }
 
   void set_parent(nnid n, nnid p) { m_nodes->get(n, true).parent = p; }
+
+  template <typename Tp> void add_item(nnid p, nnid x, Tp v) {
+    silog::log(silog::debug, "add item %d %d", p.index(), x.index());
+    auto &node = get<Tp>(p);
+    if (!node.leaf) {
+      silog::log(silog::error, "non-leaf insertion");
+      throw inconsistency_error{};
+    }
+    if (node.size == node_limit) {
+      silog::log(silog::error, "btree node overflow");
+      throw inconsistency_error{};
+    }
+    node.k[node.size].xi = x;
+    node.ai[node.size] = v;
+    node.size++;
+  }
 };
 
 storage *&current() noexcept;

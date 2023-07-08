@@ -48,7 +48,7 @@ public:
     auto r = retrieve(y, &s);
     if (r)
       return false;
-    if (s) {
+    if (!s) {
       m_root = db::current()->create_node({}, true);
       s = m_root;
     }
@@ -58,7 +58,7 @@ public:
       // split
     }
 
-    // add y to s
+    db::current()->add_item(s, y, v);
     return true;
   }
 };
