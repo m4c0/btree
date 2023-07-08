@@ -11,12 +11,15 @@ class nnid {
   unsigned m_id{};
 
 public:
-  constexpr explicit nnid() = default;
+  constexpr nnid() = default;
   constexpr explicit nnid(unsigned v) : m_id{v + 1} {}
 
   explicit constexpr operator bool() const noexcept { return m_id > 0; }
   constexpr unsigned index() const noexcept { return m_id - 1; }
 
+  constexpr bool operator<(const nnid &o) const noexcept {
+    return m_id < o.m_id;
+  }
   constexpr bool operator==(const nnid &o) const noexcept {
     return m_id == o.m_id;
   }
@@ -34,7 +37,7 @@ template <> struct node<void> {
   bool in_use{};
   unsigned size{};
   nnid p0{};
-  key ki[node_limit + 1]{};
+  key k[node_limit + 1]{};
 };
 template <typename Tp> struct node : node<void> {
   Tp ai[node_limit + 1]{};

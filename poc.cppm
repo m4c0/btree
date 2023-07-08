@@ -1,14 +1,10 @@
 export module poc;
 import btree;
 
-class tree {
-public:
-};
-
 extern "C" int main() {
   btree::db::storage s{0L};
   btree::db::current() = &s;
-  auto _ = s.read<long>(btree::db::nnid{99});
 
-  tree t{};
+  btree::tree<long> t{};
+  return t.has(btree::db::nnid{99}) ? 1 : 0;
 }
