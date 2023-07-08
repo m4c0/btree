@@ -1,2 +1,2 @@
-# ecow-template
-Template repo for ECOW projects
+# btree
+Basic B-tree implementation in C++
