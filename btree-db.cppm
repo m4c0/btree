@@ -26,78 +26,86 @@ struct key {
   nnid xi{};
   nnid pi{};
 };
-struct node {
+
+template <typename Tp> struct node;
+template <> struct node<void> {
   nnid parent{};
   bool leaf{};
   bool in_use{};
   unsigned size{};
   nnid p0{};
-  key k[node_limit + 1]{};
+  key ki[node_limit + 1]{};
 };
-template <typename Tp> struct alpha_node {
+template <typename Tp> struct node : node<void> {
   Tp ai[node_limit + 1]{};
 };
 
 template <typename Tp> class alpha_storage;
-template <> class alpha_storage<void> {};
+template <> class alpha_storage<void> {
+public:
+  virtual ~alpha_storage() = default;
+
+  [[nodiscard]] virtual node<void> &get(nnid id, bool in_use) = 0;
+  [[nodiscard]] virtual nnid find_unused_node() = 0;
+};
 template <typename Tp>
-class alpha_storage : public alpha_storage<void>, public hai::array<Tp> {
+class alpha_storage : public alpha_storage<void>, public hai::array<node<Tp>> {
   static constexpr const auto initial_cap = 128;
   static constexpr const auto resize_cap = 128;
+  using bro = hai::array<node<Tp>>;
 
 public:
-  using hai::array<Tp>::array;
+  using bro::bro;
 
-  void add_capacity() { hai::array<Tp>::add_capacity(resize_cap); }
-};
-
-class storage {
-  alpha_storage<node> m_nodes{};
-  hai::uptr<alpha_storage<void>> m_alphas;
-
-  [[nodiscard]] node &get(nnid id) {
+  [[nodiscard]] node<void> &get(nnid id, bool in_use) override {
     unsigned idx = id.index();
-    if (idx >= m_nodes.size()) {
+    if (idx >= this->size()) {
       silog::log(silog::error, "attempt of reading node past end: %d", idx);
       throw inconsistency_error();
     }
 
-    node &res = m_nodes[idx];
-    if (!res.in_use) {
+    auto &res = (*this)[idx];
+    if (res.in_use != in_use) {
       silog::log(silog::error, "attempt of reading node not in use: %d", idx);
       throw inconsistency_error();
     }
     return res;
   }
 
-  [[nodiscard]] nnid find_unused_node() {
-    for (auto i = 0U; i < m_nodes.size(); i++) {
-      auto &n = m_nodes[i];
+  [[nodiscard]] nnid find_unused_node() override {
+    for (auto i = 0U; i < this->size(); i++) {
+      auto &n = (*this)[i];
       if (!n.in_use) {
         return nnid{i};
       }
     }
-    auto i = m_nodes.size();
-    m_nodes.add_capacity();
+    auto i = this->size();
+    this->add_capacity(resize_cap);
     return nnid{i};
   }
+};
+
+class storage {
+  hai::uptr<alpha_storage<void>> m_nodes;
 
 public:
-  template <typename Tp> storage(Tp) : m_alphas{new alpha_storage<Tp>()} {}
+  template <typename Tp> storage(Tp) : m_nodes{new alpha_storage<Tp>()} {}
 
-  [[nodiscard]] const node &read(nnid id) { return get(id); }
+  template <typename Tp> [[nodiscard]] const node<Tp> &read(nnid id) {
+    return static_cast<node<Tp> &>(m_nodes->get(id, true));
+  }
 
   [[nodiscard]] nnid create_node(nnid p, bool leaf) {
-    auto res = find_unused_node();
-    auto &n = m_nodes[res.index()];
+    auto res = m_nodes->find_unused_node();
+    auto &n = m_nodes->get(res, false);
     n.parent = p;
     n.leaf = leaf;
     n.in_use = true;
     return res;
   }
-  void delete_node(nnid n) { get(n) = {}; }
+  void delete_node(nnid n) { m_nodes->get(n, true) = {}; }
 
-  void set_parent(nnid n, nnid p) { get(n).parent = p; }
+  void set_parent(nnid n, nnid p) { m_nodes->get(n, true).parent = p; }
 };
 
 storage *&current() noexcept;
