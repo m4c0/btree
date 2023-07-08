@@ -3,7 +3,6 @@ import hai;
 import silog;
 
 export namespace btree::db {
-constexpr const auto node_lower_limit = 4;
 constexpr const auto node_limit = 16;
 
 class inconsistency_error {};
@@ -23,19 +22,38 @@ public:
   }
 };
 
+struct key {
+  nnid xi{};
+  nnid pi{};
+};
 struct node {
   nnid parent{};
   bool leaf{};
   bool in_use{};
-  // unsigned size{};
-  // link children[node_limit]{};
+  unsigned size{};
+  nnid p0{};
+  key k[node_limit + 1]{};
+};
+template <typename Tp> struct alpha_node {
+  Tp ai[node_limit + 1]{};
 };
 
-class storage {
+template <typename Tp> class alpha_storage;
+template <> class alpha_storage<void> {};
+template <typename Tp>
+class alpha_storage : public alpha_storage<void>, public hai::array<Tp> {
   static constexpr const auto initial_cap = 128;
   static constexpr const auto resize_cap = 128;
 
-  hai::array<node> m_nodes{initial_cap};
+public:
+  using hai::array<Tp>::array;
+
+  void add_capacity() { hai::array<Tp>::add_capacity(resize_cap); }
+};
+
+class storage {
+  alpha_storage<node> m_nodes{};
+  hai::uptr<alpha_storage<void>> m_alphas;
 
   [[nodiscard]] node &get(nnid id) {
     unsigned idx = id.index();
@@ -60,11 +78,13 @@ class storage {
       }
     }
     auto i = m_nodes.size();
-    m_nodes.add_capacity(resize_cap);
+    m_nodes.add_capacity();
     return nnid{i};
   }
 
 public:
+  template <typename Tp> storage(Tp) : m_alphas{new alpha_storage<Tp>()} {}
+
   [[nodiscard]] const node &read(nnid id) { return get(id); }
 
   [[nodiscard]] nnid create_node(nnid p, bool leaf) {

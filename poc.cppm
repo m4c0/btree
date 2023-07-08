@@ -6,7 +6,7 @@ public:
 };
 
 extern "C" int main() {
-  btree::db::storage s{};
+  btree::db::storage s{0L};
   btree::db::current() = &s;
 
   tree t{};
