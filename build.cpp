@@ -1,9 +1,10 @@
-#include "../ecow/ecow.hpp"
+#include "build.hpp"
 
 int main(int argc, char **argv) {
   using namespace ecow;
 
   auto poc = unit::create<tool>("poc");
+  poc->add_ref(btree());
   poc->add_unit<mod>("poc");
 
   auto all = unit::create<seq>("all");

@@ -1,3 +1,13 @@
 export module poc;
+import btree;
 
-extern "C" int main() {}
+class tree {
+public:
+};
+
+extern "C" int main() {
+  btree::db::storage s{};
+  btree::db::current() = &s;
+
+  tree t{};
+}
