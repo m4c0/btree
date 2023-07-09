@@ -9,7 +9,8 @@ class test_failed {};
 
 void dump_node(db::nnid id, unsigned ind) {
   auto &node = db::current()->read<long>(id);
-  log("%*snode: %d", ind, "", id.index());
+  log("%*snode: %d - s:%d p:%d", ind, "", id.index(), node.size,
+      node.parent.index());
 
   ind++;
   if (!node.leaf)
