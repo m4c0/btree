@@ -37,7 +37,7 @@ template <typename Tp> auto find_first_leaf(db::nnid n) {
   auto node = db::current()->read<Tp>(n);
   if (node.leaf)
     return n;
-  return find_first_leaf<Tp>(node.k[0].pi);
+  return find_first_leaf<Tp>(node.p0);
 }
 
 template <typename Tp> void catenate(db::nnid p) {
@@ -114,7 +114,7 @@ template <typename Tp> bool remove(db::nnid *root, db::nnid y) {
     if (nsz >= db::node_lower_limit)
       return true;
 
-    return false;
+    p = ll;
   }
 
   catenate<Tp>(p);

@@ -32,6 +32,11 @@ void dump_tree(db::nnid id) {
 
 void check_all(db::nnid id, unsigned &la) {
   auto &node = db::current()->read<long>(id);
+  if (node.parent && node.size < db::node_lower_limit) {
+    silog::log(silog::error, "node %d with size %d", id.index(), node.size);
+    throw 0;
+  }
+
   if (!node.leaf)
     check_all(node.p0, la);
 
