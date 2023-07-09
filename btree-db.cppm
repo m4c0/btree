@@ -130,6 +130,10 @@ public:
     auto &node = get<Tp>(p);
     node.k[node.size++] = k;
   }
+  template <typename Tp> void set_entry(nnid p, unsigned idx, key<Tp> k) {
+    auto &node = get<Tp>(p);
+    node.k[idx] = k;
+  }
 
   template <typename Tp> auto remove_entry(nnid p, unsigned idx) {
     auto &node = get<Tp>(p);
