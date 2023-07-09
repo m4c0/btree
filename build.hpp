@@ -13,6 +13,7 @@ auto btree() {
   m->add_wsdep("silog", silog());
   m->add_part("db");
   m->add_part("retrieve");
+  m->add_part("insert");
   m->add_impl("singleton");
 
   return m;
