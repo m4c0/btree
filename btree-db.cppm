@@ -3,7 +3,8 @@ import hai;
 import silog;
 
 export namespace btree::db {
-constexpr const auto node_limit = 16;
+constexpr const auto node_lower_limit = 8;
+constexpr const auto node_limit = node_lower_limit * 2;
 
 class inconsistency_error {};
 
@@ -37,9 +38,9 @@ template <> struct node<void> {
   bool leaf{};
   bool in_use{};
   unsigned size{};
+  nnid p0{};
 };
 template <typename Tp> struct node : node<void> {
-  nnid p0{};
   key<Tp> k[node_limit + 1]{};
 };
 
@@ -94,6 +95,7 @@ class storage {
   template <typename Tp> [[nodiscard]] node<Tp> &get(nnid id) {
     return static_cast<node<Tp> &>(m_nodes->get(id, true));
   }
+  [[nodiscard]] auto &getv(nnid id) { return m_nodes->get(id, true); }
 
 public:
   template <typename Tp> storage(Tp) : m_nodes{new alpha_storage<Tp>()} {}
@@ -110,9 +112,11 @@ public:
     n.in_use = true;
     return res;
   }
-  void delete_node(nnid n) { m_nodes->get(n, true) = {}; }
+  void delete_node(nnid n) { getv(n) = {}; }
 
-  void set_parent(nnid n, nnid p) { m_nodes->get(n, true).parent = p; }
+  void set_parent(nnid n, nnid p) { getv(n).parent = p; }
+  void set_p0(nnid p, nnid p0) { getv(p).p0 = p0; }
+  void set_size(nnid p, unsigned s) { getv(p).size = s; }
 
   template <typename Tp> void insert_entry(nnid p, unsigned idx, key<Tp> k) {
     auto &node = get<Tp>(p);
