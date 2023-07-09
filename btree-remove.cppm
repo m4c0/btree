@@ -1,6 +1,5 @@
 export module btree:remove;
 import :db;
-export import :log;
 import :retrieve;
 export import hai;
 
@@ -51,7 +50,6 @@ template <typename Tp> void catenate(db::nnid p) {
   auto fsz = 1 + node.size + p1node.size;
   db::key<Tp> kj{yj, aj, p1node.p0};
   if (fsz <= db::node_limit) {
-    log("catenate %d %d -- %d", p.index(), p1.index(), fsz);
     db::current()->append_entry(p, kj);
     for (auto i = 0; i < p1node.size; i++) {
       db::current()->append_entry(p, p1node.k[i]);
@@ -62,7 +60,7 @@ template <typename Tp> void catenate(db::nnid p) {
     return;
   }
 
-  log("underflow %d %d -- %d", p.index(), p1.index(), fsz);
+  // underflow
 
   hai::array<db::key<Tp>> fk{fsz};
   for (auto i = 0; i < node.size; i++) {
@@ -125,6 +123,7 @@ template <typename Tp> bool remove(db::nnid *root, db::nnid y) {
   if (rn.size == 0) {
     auto new_root = rn.p0;
     db::current()->delete_node(*root);
+    db::current()->set_parent(new_root, {});
     *root = new_root;
   }
   return true;
