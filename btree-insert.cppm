@@ -28,6 +28,7 @@ template <typename Tp> bool insert(db::nnid *r, db::nnid y, Tp v) {
   }
 
   db::key<Tp> k{y, v};
+wanna_be_loop:
   auto &node = insert_entry_in_p(s, k);
   if (node.size == db::node_limit + 1) {
     log("spliting %d", s.index());
@@ -45,14 +46,8 @@ template <typename Tp> bool insert(db::nnid *r, db::nnid y, Tp v) {
 
     auto q = node.parent;
     if (q) {
-      db::current()->set_parent(p1, q);
-      auto &qnode = insert_entry_in_p(q, k);
-
-      if (qnode.size <= db::node_limit)
-        return true;
-
-      // propagate split
-      throw 0;
+      s = q;
+      goto wanna_be_loop;
     }
 
     *r = db::current()->create_node({}, false);
