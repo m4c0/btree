@@ -116,7 +116,7 @@ public:
 
   template <typename Tp> void insert_entry(nnid p, unsigned idx, key<Tp> k) {
     auto &node = get<Tp>(p);
-    for (auto i = node.size; i >= idx; i--) {
+    for (auto i = node.size; i > idx; i--) {
       node.k[i] = node.k[i - 1];
     }
     node.k[idx] = k;
