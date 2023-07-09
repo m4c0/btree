@@ -29,7 +29,7 @@ lbl:
         goto lbl;
       }
     }
-    p = node.k[node.size].pi;
+    p = node.k[node.size - 1].pi;
   }
   return {};
 }
