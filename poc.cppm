@@ -80,7 +80,7 @@ void run() {
   constexpr const auto max = 10240;
   unsigned all[max];
   for (auto i = 0U; i < max; i++) {
-    all[i] = i;
+    all[i] = i + 1;
   }
   for (auto i = 0U; i < max; i++) {
     for (auto j = 0U; j < max; j++) {
