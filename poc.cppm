@@ -4,6 +4,14 @@ import silog;
 
 class test_failed {};
 
+void check(auto &t, unsigned id) {
+  if (!t.has(btree::db::nnid{id})) {
+    silog::log(silog::debug, "missing id %d", id);
+    throw test_failed{};
+  }
+}
+void insert(auto &t, unsigned id) { t.insert(btree::db::nnid{id}, id * 100); }
+
 void run() {
   using id = btree::db::nnid;
 
@@ -12,16 +20,17 @@ void run() {
 
   btree::tree<long> t{};
 
-  t.insert(id{4}, 400);
-  t.insert(id{1}, 100);
-  t.insert(id{3}, 300);
-  t.insert(id{2}, 200);
-  for (auto i = 1U; i < 4; i++) {
-    if (!t.has(id{i})) {
-      silog::log(silog::debug, "missing id %d", i);
-      throw test_failed{};
-    }
-  }
+  insert(t, 6);
+  insert(t, 1);
+  insert(t, 7);
+  insert(t, 5);
+  insert(t, 2);
+
+  check(t, 1);
+  check(t, 2);
+  check(t, 5);
+  check(t, 6);
+  check(t, 7);
 }
 extern "C" int main() {
   try {
