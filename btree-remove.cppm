@@ -62,15 +62,13 @@ template <typename Tp> void catenate(db::nnid p) {
   auto &p1node = db::current()->read<Tp>(p1);
   auto fsz = 1 + node.size + p1node.size;
   db::key<Tp> kj{yj, aj, p1node.p0};
-
-  change_parenthood<Tp>(p1, p);
-
   if (fsz <= db::node_limit) {
     db::current()->append_entry(p, kj);
     for (auto i = 0; i < p1node.size; i++) {
       db::current()->append_entry(p, p1node.k[i]);
     }
 
+    change_parenthood<Tp>(p1, p);
     db::current()->delete_node(p1);
 
     if (db::current()->remove_entry<Tp>(q, idx) < db::node_lower_limit)
@@ -96,11 +94,15 @@ template <typename Tp> void catenate(db::nnid p) {
   auto mid = fsz / 2;
   for (auto i = 0; i < mid; i++) {
     db::current()->append_entry(p, fk[i]);
+    if (!node.leaf)
+      db::current()->set_parent(fk[i].pi, p);
   }
   fk[mid].pi = p1;
   db::current()->set_entry(q, idx, fk[mid]);
   for (auto i = mid + 1; i < fsz; i++) {
     db::current()->append_entry(p1, fk[i]);
+    if (!node.leaf)
+      db::current()->set_parent(fk[i].pi, p1);
   }
 }
 
