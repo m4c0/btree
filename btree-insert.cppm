@@ -1,5 +1,6 @@
 export module btree:insert;
 import :db;
+import silog;
 
 export namespace btree {
 template <typename Tp>
@@ -20,6 +21,7 @@ template <typename Tp> bool insert(db::nnid *r, db::nnid y, Tp v) {
 
   if (!s) {
     *r = db::current()->create_node({}, true);
+    silog::log(silog::debug, "creating root %d", r->index());
     db::current()->insert_entry(*r, 0, db::key<Tp>{y, v});
     return true;
   }
@@ -28,6 +30,7 @@ template <typename Tp> bool insert(db::nnid *r, db::nnid y, Tp v) {
   insert_entry_in_p(s, node, db::key<Tp>{y, v});
 
   if (node.size == db::node_limit + 1) {
+    silog::log(silog::debug, "spliting %d", s.index());
     auto p = s;
     auto p1 = db::current()->create_node(node.parent, node.leaf);
     for (auto i = 0; i < db::node_lower_limit; i++) {
@@ -48,6 +51,7 @@ template <typename Tp> bool insert(db::nnid *r, db::nnid y, Tp v) {
     k.pi = p1;
 
     *r = db::current()->create_node({}, false);
+    silog::log(silog::debug, "new root %d", r->index());
     db::current()->set_p0(*r, p);
     db::current()->insert_entry(*r, 0, k);
   }
