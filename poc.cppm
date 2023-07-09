@@ -1,5 +1,6 @@
 export module poc;
 import btree;
+import rng;
 import silog;
 
 class test_failed {};
@@ -18,19 +19,32 @@ void run() {
   btree::db::storage s{0L};
   btree::db::current() = &s;
 
+  constexpr const auto max = 10240;
+  unsigned all[max];
+  for (auto i = 0U; i < max; i++) {
+    all[i] = i;
+  }
+  for (auto i = 0U; i < max; i++) {
+    for (auto j = i + 1; j < max; j++) {
+      if (rng::randf() > 0.5f)
+        continue;
+      auto tmp = all[j];
+      all[j] = all[i];
+      all[i] = tmp;
+    }
+  }
+
   btree::tree<long> t{};
-
-  insert(t, 6);
-  insert(t, 1);
-  insert(t, 7);
-  insert(t, 5);
-  insert(t, 2);
-
-  check(t, 1);
-  check(t, 2);
-  check(t, 5);
-  check(t, 6);
-  check(t, 7);
+  silog::log(silog::info, "inserting");
+  for (auto n : all) {
+    silog::log(silog::debug, "insert/check %d", n);
+    insert(t, n);
+    check(t, n);
+  }
+  silog::log(silog::info, "checking");
+  for (auto n : all) {
+    check(t, n);
+  }
 }
 extern "C" int main() {
   try {

@@ -1,9 +1,11 @@
+#include "../rng/build.hpp"
 #include "build.hpp"
 
 int main(int argc, char **argv) {
   using namespace ecow;
 
   auto poc = unit::create<tool>("poc");
+  poc->add_wsdep("rng", rng());
   poc->add_wsdep("silog", silog());
   poc->add_ref(btree());
   poc->add_unit<mod>("poc");
