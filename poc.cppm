@@ -7,33 +7,39 @@ using namespace btree;
 
 class test_failed {};
 
-void dump_node(db::nnid id, unsigned ind) {
+void dump_node(db::nnid id, unsigned ind, unsigned &la) {
   auto &node = db::current()->read<long>(id);
   log("%*snode: %d - s:%d p:%d l:%d", ind, "", id.index(), node.size,
       node.parent.index(), ind);
 
   ind++;
   if (!node.leaf)
-    dump_node(node.p0, ind);
+    dump_node(node.p0, ind, la);
   for (auto i = 0; i < node.size; i++) {
     auto k = node.k[i];
-    log("%*si=%d k=%d v=%ld", ind, "", i, k.xi.index(), k.ai);
+    char fill = (k.ai <= la) ? '!' : ' ';
+    log("%c%*si=%d k=%d v=%ld", fill, ind - 1, "", i, k.xi.index(), k.ai);
+    la = k.ai;
     if (!node.leaf)
-      dump_node(k.pi, ind);
+      dump_node(k.pi, ind, la);
   }
+}
+void dump_tree(db::nnid id) {
+  unsigned la{};
+  dump_node(id, 0, la);
 }
 
 void check(auto &t, unsigned id) {
   if (!t.has(db::nnid{id})) {
     log("missing id %d", id);
-    dump_node(t.root(), 0);
+    dump_tree(t.root());
     throw test_failed{};
   }
 }
 void insert(auto &t, unsigned id) {
   if (!t.insert(db::nnid{id}, id * 100)) {
     log("insert failed for id %d", id);
-    dump_node(t.root(), 0);
+    dump_tree(t.root());
     throw test_failed{};
   }
 }
