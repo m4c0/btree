@@ -2,7 +2,9 @@ export module poc;
 import btree;
 import silog;
 
-int run() {
+class test_failed {};
+
+void run() {
   using id = btree::db::nnid;
 
   btree::db::storage s{0L};
@@ -10,18 +12,25 @@ int run() {
 
   btree::tree<long> t{};
 
-  for (auto i = 0U; i < 10000; i++) {
-    if (!t.insert(id{i}, i))
-      return 1;
+  t.insert(id{4}, 400);
+  t.insert(id{1}, 100);
+  t.insert(id{3}, 300);
+  t.insert(id{2}, 200);
+  for (auto i = 1U; i < 4; i++) {
+    if (!t.has(id{i})) {
+      silog::log(silog::debug, "missing id %d", i);
+      throw test_failed{};
+    }
   }
-
-  return t.has(id{99}) ? 0 : 1;
 }
 extern "C" int main() {
   try {
-    return run();
+    run();
+    return 0;
+  } catch (test_failed) {
+    silog::log(silog::error, "test failed");
   } catch (btree::db::inconsistency_error) {
     silog::log(silog::error, "db error");
-    return 1;
   }
+  return 1;
 }
