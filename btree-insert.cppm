@@ -9,7 +9,7 @@ export template <typename Tp> bool insert(db::nnid *r, db::nnid y, Tp v) {
 
   if (!s) {
     *r = db::current()->create_node({}, true);
-    db::current()->add_item(*r, y, v);
+    db::current()->insert_entry(*r, 0, db::key<Tp>{y, v});
     return true;
   }
 
@@ -19,7 +19,7 @@ export template <typename Tp> bool insert(db::nnid *r, db::nnid y, Tp v) {
     return true;
   }
 
-  db::current()->add_item(s, y, v);
+  // db::current()->insert_item(s, y, v);
   return true;
 }
 } // namespace btree

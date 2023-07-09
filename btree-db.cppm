@@ -114,17 +114,12 @@ public:
 
   void set_parent(nnid n, nnid p) { m_nodes->get(n, true).parent = p; }
 
-  template <typename Tp> void add_item(nnid p, nnid x, Tp v) {
+  template <typename Tp> void insert_entry(nnid p, unsigned idx, key<Tp> k) {
     auto &node = get<Tp>(p);
-    if (!node.leaf) {
-      silog::log(silog::error, "non-leaf insertion");
-      throw inconsistency_error{};
+    for (auto i = node.size; i >= idx; i--) {
+      node.k[i] = node.k[i - 1];
     }
-    if (node.size == node_limit) {
-      silog::log(silog::error, "btree node overflow");
-      throw inconsistency_error{};
-    }
-    node.k[node.size] = {.xi = x, .ai = v};
+    node.k[idx] = k;
     node.size++;
   }
 };
