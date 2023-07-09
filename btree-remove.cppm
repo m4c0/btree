@@ -53,10 +53,17 @@ template <typename Tp> bool remove(db::nnid *root, db::nnid y) {
     auto &p1node = db::current()->read<Tp>(p1);
     if (1 + nsz + p1node.size <= db::node_limit) {
       log("merge %d %d", p.index(), p1.index());
-      db::current()->remove_entry<Tp>(node.parent, idx);
       db::current()->append_entry(p, db::key<Tp>{yj, aj, p1node.p0});
-      return false;
+      for (auto i = 0; i < p1node.size; i++) {
+        db::current()->append_entry(p, p1node.k[i]);
+      }
+
+      db::current()->remove_entry<Tp>(node.parent, idx);
+      db::current()->delete_node(p1);
+      return true;
     }
+
+    return false;
   }
 
   return false;
