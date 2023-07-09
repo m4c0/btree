@@ -3,15 +3,16 @@ import :db;
 export import :log;
 
 export namespace btree {
-template <typename Tp>
-void insert_entry_in_p(db::nnid s, const db::node<Tp> &node, db::key<Tp> k) {
+template <typename Tp> auto &insert_entry_in_p(db::nnid s, db::key<Tp> k) {
+  auto &node = db::current()->read<Tp>(s);
   for (auto i = 0; i < node.size; i++) {
     if (k.xi < node.k[i].xi) {
       db::current()->insert_entry(s, i, k);
-      return;
+      return node;
     }
   }
   db::current()->insert_entry(s, node.size, k);
+  return node;
 }
 
 template <typename Tp> bool insert(db::nnid *r, db::nnid y, Tp v) {
@@ -26,9 +27,8 @@ template <typename Tp> bool insert(db::nnid *r, db::nnid y, Tp v) {
     return true;
   }
 
-  auto &node = db::current()->read<Tp>(s);
-  insert_entry_in_p(s, node, db::key<Tp>{y, v});
-
+  db::key<Tp> k{y, v};
+  auto &node = insert_entry_in_p(s, k);
   if (node.size == db::node_limit + 1) {
     log("spliting %d", s.index());
     auto p = s;
@@ -40,18 +40,19 @@ template <typename Tp> bool insert(db::nnid *r, db::nnid y, Tp v) {
     db::current()->set_p0(p1, node.k[db::node_lower_limit].pi);
     db::current()->set_size(p, db::node_lower_limit);
 
-    auto k = node.k[db::node_lower_limit];
+    k = node.k[db::node_lower_limit];
     k.pi = p1;
 
     auto q = node.parent;
     if (q) {
-      auto &qnode = db::current()->read<Tp>(q);
-      if (qnode.size == db::node_limit)
-        throw 0;
-
-      insert_entry_in_p(q, qnode, k);
       db::current()->set_parent(p1, q);
-      return true;
+      auto &qnode = insert_entry_in_p(q, k);
+
+      if (qnode.size <= db::node_limit)
+        return true;
+
+      // propagate split
+      throw 0;
     }
 
     *r = db::current()->create_node({}, false);
