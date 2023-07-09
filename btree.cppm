@@ -20,6 +20,6 @@ public:
 
   bool insert(db::nnid y, Tp v) { return btree::insert(&m_root, y, v); }
 
-  bool remove(db::nnid y) { return btree::remove(&m_root, y); }
+  bool remove(db::nnid y) { return btree::remove<Tp>(&m_root, y); }
 };
 }; // namespace btree

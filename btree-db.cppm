@@ -126,6 +126,15 @@ public:
     node.k[idx] = k;
     node.size++;
   }
+
+  template <typename Tp> auto remove_entry(nnid p, unsigned idx) {
+    auto &node = get<Tp>(p);
+    for (auto i = idx; i < node.size; i++) {
+      node.k[i] = node.k[i + 1];
+    }
+    node.size--;
+    return node.size;
+  }
 };
 
 storage *&current() noexcept;
