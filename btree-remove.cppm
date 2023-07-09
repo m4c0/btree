@@ -29,6 +29,13 @@ template <typename Tp> unsigned find_y_in_node(db::nnid n, db::nnid y) {
   throw db::inconsistency_error{};
 }
 
+template <typename Tp> auto find_first_leaf(db::nnid n) {
+  auto node = db::current()->read<Tp>(n);
+  if (node.leaf)
+    return n;
+  return find_first_leaf<Tp>(node.k[0].pi);
+}
+
 template <typename Tp> bool catenate(db::nnid p) {
   auto q = db::current()->read<Tp>(p).parent;
 
@@ -82,8 +89,8 @@ template <typename Tp> bool remove(db::nnid *root, db::nnid y) {
     return false;
 
   auto &node = db::current()->read<Tp>(p);
+  auto i = find_y_in_node<Tp>(p, y);
   if (node.leaf) {
-    auto i = find_y_in_node<Tp>(p, y);
     auto nsz = db::current()->remove_entry<Tp>(p, i);
     if (nsz >= db::node_lower_limit)
       return true;
@@ -95,6 +102,17 @@ template <typename Tp> bool remove(db::nnid *root, db::nnid y) {
       }
       return true;
     }
+  } else {
+    auto ll = find_first_leaf<Tp>(node.k[i].pi);
+    auto k0ll = db::current()->read<Tp>(ll).k[0];
+    k0ll.pi = node.k[i].pi;
+    db::current()->set_entry(p, i, k0ll);
+
+    auto nsz = db::current()->remove_entry<Tp>(ll, 0);
+    if (nsz >= db::node_lower_limit)
+      return true;
+
+    return false;
   }
 
   return catenate<Tp>(p);
