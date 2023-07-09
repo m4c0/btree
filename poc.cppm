@@ -25,12 +25,16 @@ void run() {
 }
 extern "C" int main() {
   try {
+    silog::log(silog::error, "test started");
     run();
+    silog::log(silog::error, "test passed");
     return 0;
   } catch (test_failed) {
     silog::log(silog::error, "test failed");
   } catch (btree::db::inconsistency_error) {
     silog::log(silog::error, "db error");
+  } catch (...) {
+    silog::log(silog::error, "something broke");
   }
   return 1;
 }
