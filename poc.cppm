@@ -71,6 +71,18 @@ void insert(auto &t, unsigned id) {
     throw test_failed{};
   }
 }
+void remove(auto &t, unsigned id) {
+  if (!t.remove(db::nnid{id})) {
+    silog::log(silog::error, "remove failed for id %d", id);
+    dump_tree(t.root());
+    throw test_failed{};
+  }
+  if (t.has(db::nnid{id})) {
+    silog::log(silog::error, "element id %d still there", id);
+    dump_tree(t.root());
+    throw test_failed{};
+  }
+}
 
 void run() {
   using id = db::nnid;
@@ -99,16 +111,20 @@ void run() {
     insert(t, n);
     check(t, n);
   }
-  silog::log(silog::info, "checking");
+  silog::log(silog::info, "checking all again");
   for (auto n : all) {
     check(t, n);
+  }
+  silog::log(silog::info, "cleaning up");
+  for (auto n : all) {
+    remove(t, n);
   }
 }
 extern "C" int main() {
   try {
-    silog::log(silog::error, "test started");
+    silog::log(silog::warning, "test started");
     run();
-    silog::log(silog::error, "test passed");
+    silog::log(silog::warning, "test passed");
     return 0;
   } catch (test_failed) {
     silog::log(silog::error, "test failed");

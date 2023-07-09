@@ -15,6 +15,7 @@ auto btree() {
   m->add_part("db");
   m->add_part("retrieve");
   m->add_part("insert");
+  m->add_part("remove");
   m->add_impl("singleton");
 
   return m;
