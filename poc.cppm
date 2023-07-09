@@ -30,15 +30,20 @@ void dump_tree(db::nnid id) {
   dump_node(id, 0, la);
 }
 
-void check_all(db::nnid id, unsigned &la) {
+void check_all(db::nnid id, db::nnid parent, unsigned &la) {
   auto &node = db::current()->read<long>(id);
   if (node.parent && node.size < db::node_lower_limit) {
     silog::log(silog::error, "node %d with size %d", id.index(), node.size);
     throw 0;
   }
+  if (node.parent != parent) {
+    silog::log(silog::error, "node %d with invalid parent %d exp=%d",
+               id.index(), node.parent.index(), parent.index());
+    throw 0;
+  }
 
   if (!node.leaf)
-    check_all(node.p0, la);
+    check_all(node.p0, id, la);
 
   for (auto i = 0; i < node.size; i++) {
     auto k = node.k[i];
@@ -47,13 +52,13 @@ void check_all(db::nnid id, unsigned &la) {
 
     la = k.ai;
     if (!node.leaf)
-      check_all(k.pi, la);
+      check_all(k.pi, id, la);
   }
 }
 void check_all(db::nnid root) {
   unsigned la{};
   try {
-    check_all(root, la);
+    check_all(root, {}, la);
   } catch (...) {
     silog::log(silog::error, "inconsistent tree with root = %d", root.index());
     throw test_failed{};
