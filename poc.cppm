@@ -9,15 +9,15 @@ class test_failed {};
 
 void dump_node(db::nnid id, unsigned ind) {
   auto &node = db::current()->read<long>(id);
-  log("%*snode: %d - s:%d p:%d", ind, "", id.index(), node.size,
-      node.parent.index());
+  log("%*snode: %d - s:%d p:%d l:%d", ind, "", id.index(), node.size,
+      node.parent.index(), ind);
 
   ind++;
   if (!node.leaf)
     dump_node(node.p0, ind);
   for (auto i = 0; i < node.size; i++) {
     auto k = node.k[i];
-    log("%*sk=%d v=%ld", ind, "", k.xi.index(), k.ai);
+    log("%*si=%d k=%d v=%ld", ind, "", i, k.xi.index(), k.ai);
     if (!node.leaf)
       dump_node(k.pi, ind);
   }
@@ -30,7 +30,13 @@ void check(auto &t, unsigned id) {
     throw test_failed{};
   }
 }
-void insert(auto &t, unsigned id) { t.insert(db::nnid{id}, id * 100); }
+void insert(auto &t, unsigned id) {
+  if (!t.insert(db::nnid{id}, id * 100)) {
+    log("insert failed for id %d", id);
+    dump_node(t.root(), 0);
+    throw test_failed{};
+  }
+}
 
 void run() {
   using id = db::nnid;
