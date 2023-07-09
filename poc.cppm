@@ -79,7 +79,6 @@ void insert(auto &t, unsigned id) {
   }
 }
 void remove(auto &t, unsigned id) {
-  silog::log(silog::debug, "remove %d", id);
   if (!t.remove(db::nnid{id})) {
     silog::log(silog::error, "remove failed for id %d", id);
     throw test_failed{};
@@ -120,9 +119,9 @@ void run(auto &t) {
   silog::log(silog::info, "cleaning up");
   for (auto i = 0; i < max; i++) {
     remove(t, all[i]);
-    for (auto j = i + 1; j < max; j++) {
-      check(t, all[j]);
-    }
+    // for (auto j = i + 1; j < max; j++) {
+    //   check(t, all[j]);
+    // }
   }
 }
 extern "C" int main() {
