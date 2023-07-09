@@ -72,6 +72,7 @@ void insert(auto &t, unsigned id) {
   }
 }
 void remove(auto &t, unsigned id) {
+  silog::log(silog::debug, "remove %d", id);
   if (!t.remove(db::nnid{id})) {
     silog::log(silog::error, "remove failed for id %d", id);
     dump_tree(t.root());
@@ -90,7 +91,7 @@ void run() {
   db::storage s{0L};
   db::current() = &s;
 
-  constexpr const auto max = 10240;
+  constexpr const auto max = 30;
   unsigned all[max];
   for (auto i = 0U; i < max; i++) {
     all[i] = i + 1;
@@ -116,8 +117,11 @@ void run() {
     check(t, n);
   }
   silog::log(silog::info, "cleaning up");
-  for (auto n : all) {
-    remove(t, n);
+  for (auto i = 0; i < max; i++) {
+    remove(t, all[i]);
+    for (auto j = i + 1; j < max; j++) {
+      check(t, all[j]);
+    }
   }
 }
 extern "C" int main() {
