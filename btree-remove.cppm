@@ -58,21 +58,22 @@ template <typename Tp> bool catenate(db::nnid p) {
   }
   fk[node.size] = kj;
   for (auto i = 0; i < p1node.size; i++) {
-    fk[node.size + 1] = p1node.k[i];
+    fk[i + node.size + 1] = p1node.k[i];
   }
 
   db::current()->set_size(p, 0);
   db::current()->set_size(p1, 0);
 
   auto mid = fsz / 2;
-  for (auto i = node.size; i < mid; i++) {
+  for (auto i = 0; i < mid; i++) {
     db::current()->append_entry(p, fk[i]);
   }
+  fk[mid].pi = p1;
   db::current()->set_entry(q, idx, fk[mid]);
   for (auto i = mid + 1; i < fsz; i++) {
-    db::current()->append_entry(p, fk[i]);
+    db::current()->append_entry(p1, fk[i]);
   }
-  return false;
+  return true;
 }
 
 template <typename Tp> bool remove(db::nnid *root, db::nnid y) {
