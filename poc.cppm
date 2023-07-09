@@ -28,7 +28,7 @@ void run() {
     all[i] = i;
   }
   for (auto i = 0U; i < max; i++) {
-    for (auto j = i + 1; j < max; j++) {
+    for (auto j = 0U; j < max; j++) {
       if (rng::randf() > 0.5f)
         continue;
       auto tmp = all[j];
