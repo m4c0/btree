@@ -15,6 +15,11 @@ template <typename Tp> unsigned find_bro_in_node(db::nnid parent, db::nnid *p) {
       return i + 1;
   }
 
+  if (node.size == 1) {
+    *p = node.p0;
+    return 0;
+  }
+
   *p = node.k[node.size - 2].pi;
   return node.size - 1;
 }
@@ -36,7 +41,7 @@ template <typename Tp> auto find_first_leaf(db::nnid n) {
   return find_first_leaf<Tp>(node.k[0].pi);
 }
 
-template <typename Tp> bool catenate(db::nnid p) {
+template <typename Tp> void catenate(db::nnid p) {
   auto q = db::current()->read<Tp>(p).parent;
 
   auto idx = find_bro_in_node<Tp>(q, &p);
@@ -46,7 +51,7 @@ template <typename Tp> bool catenate(db::nnid p) {
   auto fsz = 1 + node.size + p1node.size;
   db::key<Tp> kj{yj, aj, p1node.p0};
   if (fsz <= db::node_limit) {
-    log("catenate %d %d", p.index(), p1.index());
+    log("catenate %d %d -- %d", p.index(), p1.index(), fsz);
     db::current()->append_entry(p, kj);
     for (auto i = 0; i < p1node.size; i++) {
       db::current()->append_entry(p, p1node.k[i]);
@@ -54,7 +59,7 @@ template <typename Tp> bool catenate(db::nnid p) {
 
     db::current()->remove_entry<Tp>(q, idx);
     db::current()->delete_node(p1);
-    return true;
+    return;
   }
 
   log("underflow %d %d -- %d", p.index(), p1.index(), fsz);
@@ -80,7 +85,6 @@ template <typename Tp> bool catenate(db::nnid p) {
   for (auto i = mid + 1; i < fsz; i++) {
     db::current()->append_entry(p1, fk[i]);
   }
-  return true;
 }
 
 template <typename Tp> bool remove(db::nnid *root, db::nnid y) {
@@ -115,6 +119,14 @@ template <typename Tp> bool remove(db::nnid *root, db::nnid y) {
     return false;
   }
 
-  return catenate<Tp>(p);
+  catenate<Tp>(p);
+
+  auto &rn = db::current()->read<Tp>(*root);
+  if (rn.size == 0) {
+    auto new_root = rn.p0;
+    db::current()->delete_node(*root);
+    *root = new_root;
+  }
+  return true;
 }
 } // namespace btree
