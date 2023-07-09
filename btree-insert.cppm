@@ -35,14 +35,19 @@ template <typename Tp> bool insert(db::nnid *r, db::nnid y, Tp v) {
     if (node.size < db::node_limit + 1)
       return true;
 
-    log("spliting %d", s.index());
     p = s;
     p1 = db::current()->create_node(node.parent, node.leaf);
+    log("spliting %d to %d", p.index(), p1.index());
     for (auto i = 0; i < db::node_lower_limit; i++) {
       auto key = node.k[i + db::node_lower_limit + 1];
       db::current()->insert_entry(p1, i, key);
+      if (key.pi)
+        db::current()->set_parent(key.pi, p1);
     }
-    db::current()->set_p0(p1, node.k[db::node_lower_limit].pi);
+    auto p1p0 = node.k[db::node_lower_limit].pi;
+    db::current()->set_p0(p1, p1p0);
+    if (p1p0)
+      db::current()->set_parent(p1p0, p1);
     db::current()->set_size(p, db::node_lower_limit);
 
     k = node.k[db::node_lower_limit];
