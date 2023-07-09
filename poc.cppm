@@ -3,24 +3,39 @@ import btree;
 import rng;
 import silog;
 
+using namespace btree;
+
 class test_failed {};
 
-void dump_node(auto id) {}
+void dump_node(db::nnid id, unsigned ind) {
+  auto &node = db::current()->read<long>(id);
+  log("%*snode: %d", ind, "", id.index());
+
+  ind++;
+  if (!node.leaf)
+    dump_node(node.p0, ind);
+  for (auto i = 0; i < node.size; i++) {
+    auto k = node.k[i];
+    log("%*sk=%d v=%ld", ind, "", k.xi.index(), k.ai);
+    if (!node.leaf)
+      dump_node(k.pi, ind);
+  }
+}
 
 void check(auto &t, unsigned id) {
-  if (!t.has(btree::db::nnid{id})) {
-    silog::log(silog::debug, "missing id %d", id);
-    dump_node(t.root());
+  if (!t.has(db::nnid{id})) {
+    log("missing id %d", id);
+    dump_node(t.root(), 0);
     throw test_failed{};
   }
 }
-void insert(auto &t, unsigned id) { t.insert(btree::db::nnid{id}, id * 100); }
+void insert(auto &t, unsigned id) { t.insert(db::nnid{id}, id * 100); }
 
 void run() {
-  using id = btree::db::nnid;
+  using id = db::nnid;
 
-  btree::db::storage s{0L};
-  btree::db::current() = &s;
+  db::storage s{0L};
+  db::current() = &s;
 
   constexpr const auto max = 10240;
   unsigned all[max];
@@ -37,10 +52,10 @@ void run() {
     }
   }
 
-  btree::tree<long> t{};
+  tree<long> t{};
   silog::log(silog::info, "inserting");
   for (auto n : all) {
-    silog::log(silog::debug, "insert/check %d", n);
+    log("insert/check %d", n);
     insert(t, n);
     check(t, n);
   }
@@ -57,7 +72,7 @@ extern "C" int main() {
     return 0;
   } catch (test_failed) {
     silog::log(silog::error, "test failed");
-  } catch (btree::db::inconsistency_error) {
+  } catch (db::inconsistency_error) {
     silog::log(silog::error, "db error");
   } catch (...) {
     silog::log(silog::error, "something broke");
