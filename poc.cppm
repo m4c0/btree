@@ -29,12 +29,36 @@ void dump_tree(db::nnid id) {
   dump_node(id, 0, la);
 }
 
+bool check_all(db::nnid id, unsigned la) {
+  auto &node = db::current()->read<long>(id);
+  if (!node.leaf && !check_all(node.p0, la))
+    return false;
+  for (auto i = 0; i < node.size; i++) {
+    auto k = node.k[i];
+    if (k.ai <= la)
+      return false;
+    la = k.ai;
+    if (!node.leaf && !check_all(k.pi, la))
+      return false;
+  }
+  return true;
+}
+void check_all(db::nnid root) {
+  unsigned la{};
+  if (!check_all(root, la)) {
+    log("inconsistent tree with root = %d", root.index());
+    dump_tree(root);
+    throw test_failed{};
+  };
+}
+
 void check(auto &t, unsigned id) {
   if (!t.has(db::nnid{id})) {
     log("missing id %d", id);
     dump_tree(t.root());
     throw test_failed{};
   }
+  check_all(t.root());
 }
 void insert(auto &t, unsigned id) {
   if (!t.insert(db::nnid{id}, id * 100)) {
