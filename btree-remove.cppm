@@ -97,6 +97,10 @@ template <typename Tp> void catenate(db::nnid p) {
     if (!node.leaf)
       db::current()->set_parent(fk[i].pi, p);
   }
+  if (!node.leaf) {
+    db::current()->set_p0(p1, fk[mid].pi);
+    db::current()->set_parent(fk[mid].pi, p1);
+  }
   fk[mid].pi = p1;
   db::current()->set_entry(q, idx, fk[mid]);
   for (auto i = mid + 1; i < fsz; i++) {
