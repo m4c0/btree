@@ -56,7 +56,6 @@ void check_all(db::nnid root) {
     check_all(root, la);
   } catch (...) {
     silog::log(silog::error, "inconsistent tree with root = %d", root.index());
-    dump_tree(root);
     throw test_failed{};
   };
 }
@@ -64,7 +63,6 @@ void check_all(db::nnid root) {
 void check(auto &t, unsigned id) {
   if (!t.has(db::nnid{id})) {
     silog::log(silog::error, "missing id %d", id);
-    dump_tree(t.root());
     throw test_failed{};
   }
   check_all(t.root());
@@ -72,7 +70,6 @@ void check(auto &t, unsigned id) {
 void insert(auto &t, unsigned id) {
   if (!t.insert(db::nnid{id}, id * 100)) {
     silog::log(silog::error, "insert failed for id %d", id);
-    dump_tree(t.root());
     throw test_failed{};
   }
 }
@@ -80,23 +77,18 @@ void remove(auto &t, unsigned id) {
   silog::log(silog::debug, "remove %d", id);
   if (!t.remove(db::nnid{id})) {
     silog::log(silog::error, "remove failed for id %d", id);
-    dump_tree(t.root());
     throw test_failed{};
   }
   if (t.has(db::nnid{id})) {
     silog::log(silog::error, "element id %d still there", id);
-    dump_tree(t.root());
     throw test_failed{};
   }
 }
 
-void run() {
+void run(auto &t) {
   using id = db::nnid;
 
-  db::storage s{0L};
-  db::current() = &s;
-
-  constexpr const auto max = 30;
+  constexpr const auto max = 10240;
   unsigned all[max];
   for (auto i = 0U; i < max; i++) {
     all[i] = i + 1;
@@ -111,7 +103,6 @@ void run() {
     }
   }
 
-  tree<long> t{};
   silog::log(silog::info, "inserting");
   for (auto n : all) {
     insert(t, n);
@@ -130,9 +121,13 @@ void run() {
   }
 }
 extern "C" int main() {
+  db::storage s{0L};
+  db::current() = &s;
+
+  tree<long> t{};
   try {
     silog::log(silog::warning, "test started");
-    run();
+    run(t);
     silog::log(silog::warning, "test passed");
     return 0;
   } catch (test_failed) {
@@ -142,5 +137,6 @@ extern "C" int main() {
   } catch (...) {
     silog::log(silog::error, "something broke");
   }
+  dump_tree(t.root());
   return 1;
 }
