@@ -11,6 +11,7 @@ auto btree() {
   m->add_wsdep("hai", hai());
   m->add_wsdep("missingno", missingno());
   m->add_wsdep("silog", silog());
+  m->add_part("log");
   m->add_part("db");
   m->add_part("retrieve");
   m->add_part("insert");
