@@ -5,9 +5,12 @@ import silog;
 
 class test_failed {};
 
+void dump_node(auto id) {}
+
 void check(auto &t, unsigned id) {
   if (!t.has(btree::db::nnid{id})) {
     silog::log(silog::debug, "missing id %d", id);
+    dump_node(t.root());
     throw test_failed{};
   }
 }

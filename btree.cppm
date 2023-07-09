@@ -9,6 +9,8 @@ export template <typename Tp> class tree {
   db::nnid m_root{};
 
 public:
+  [[nodiscard]] constexpr auto root() const noexcept { return m_root; }
+
   [[nodiscard]] mno::opt<Tp> get(db::nnid y) const {
     db::nnid s{};
     return retrieve<Tp>(m_root, y, &s);
