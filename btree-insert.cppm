@@ -36,6 +36,20 @@ template <typename Tp> bool insert(db::nnid *r, db::nnid y, Tp v) {
     }
     db::current()->set_p0(p1, node.k[db::node_lower_limit].pi);
     db::current()->set_size(p, db::node_lower_limit);
+
+    auto k = node.k[db::node_lower_limit];
+
+    auto q = node.parent;
+    if (q) {
+      // split q
+      throw 0;
+    }
+
+    k.pi = p1;
+
+    *r = db::current()->create_node({}, false);
+    db::current()->set_p0(*r, p);
+    db::current()->insert_entry(*r, 0, k);
   }
 
   return true;
