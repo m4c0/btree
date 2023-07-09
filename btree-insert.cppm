@@ -41,19 +41,25 @@ template <typename Tp> bool insert(db::nnid *r, db::nnid y, Tp v) {
     db::current()->set_size(p, db::node_lower_limit);
 
     auto k = node.k[db::node_lower_limit];
+    k.pi = p1;
 
     auto q = node.parent;
     if (q) {
-      // split q
-      throw 0;
-    }
+      auto &qnode = db::current()->read<Tp>(q);
+      if (qnode.size == db::node_limit)
+        throw 0;
 
-    k.pi = p1;
+      insert_entry_in_p(q, qnode, k);
+      db::current()->set_parent(p1, q);
+      return true;
+    }
 
     *r = db::current()->create_node({}, false);
     log("new root %d", r->index());
     db::current()->set_p0(*r, p);
     db::current()->insert_entry(*r, 0, k);
+    db::current()->set_parent(p, *r);
+    db::current()->set_parent(p1, *r);
   }
 
   return true;
