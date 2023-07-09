@@ -40,6 +40,17 @@ template <typename Tp> auto find_first_leaf(db::nnid n) {
   return find_first_leaf<Tp>(node.p0);
 }
 
+template <typename Tp> void change_parenthood(db::nnid from, db::nnid to) {
+  auto &node = db::current()->read<Tp>(from);
+  if (node.leaf)
+    return;
+
+  db::current()->set_parent(node.p0, to);
+  for (auto i = 0; i < node.size; i++) {
+    db::current()->set_parent(node.k[i].pi, to);
+  }
+}
+
 template <typename Tp> void catenate(db::nnid p) {
   auto q = db::current()->read<Tp>(p).parent;
   if (!q)
@@ -51,6 +62,9 @@ template <typename Tp> void catenate(db::nnid p) {
   auto &p1node = db::current()->read<Tp>(p1);
   auto fsz = 1 + node.size + p1node.size;
   db::key<Tp> kj{yj, aj, p1node.p0};
+
+  change_parenthood<Tp>(p1, p);
+
   if (fsz <= db::node_limit) {
     db::current()->append_entry(p, kj);
     for (auto i = 0; i < p1node.size; i++) {
