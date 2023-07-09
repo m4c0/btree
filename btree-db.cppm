@@ -1,5 +1,5 @@
 export module btree:db;
-import hai;
+export import hai;
 import silog;
 
 export namespace btree::db {
