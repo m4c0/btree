@@ -42,6 +42,8 @@ template <typename Tp> auto find_first_leaf(db::nnid n) {
 
 template <typename Tp> void catenate(db::nnid p) {
   auto q = db::current()->read<Tp>(p).parent;
+  if (!q)
+    return;
 
   auto idx = find_bro_in_node<Tp>(q, &p);
   auto [yj, aj, p1] = db::current()->read<Tp>(q).k[idx];
@@ -55,8 +57,11 @@ template <typename Tp> void catenate(db::nnid p) {
       db::current()->append_entry(p, p1node.k[i]);
     }
 
-    db::current()->remove_entry<Tp>(q, idx);
     db::current()->delete_node(p1);
+
+    if (db::current()->remove_entry<Tp>(q, idx) < db::node_lower_limit)
+      catenate<Tp>(q);
+
     return;
   }
 
