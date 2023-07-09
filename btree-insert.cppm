@@ -27,6 +27,8 @@ template <typename Tp> bool insert(db::nnid *r, db::nnid y, Tp v) {
     return true;
   }
 
+  db::nnid p;
+  db::nnid p1;
   db::key<Tp> k{y, v};
   while (true) {
     auto &node = insert_entry_in_p(s, k);
@@ -34,8 +36,8 @@ template <typename Tp> bool insert(db::nnid *r, db::nnid y, Tp v) {
       return true;
 
     log("spliting %d", s.index());
-    auto p = s;
-    auto p1 = db::current()->create_node(node.parent, node.leaf);
+    p = s;
+    p1 = db::current()->create_node(node.parent, node.leaf);
     for (auto i = 0; i < db::node_lower_limit; i++) {
       auto key = node.k[i + db::node_lower_limit + 1];
       db::current()->insert_entry(p1, i, key);
@@ -47,19 +49,18 @@ template <typename Tp> bool insert(db::nnid *r, db::nnid y, Tp v) {
     k.pi = p1;
 
     auto q = node.parent;
-    if (q) {
-      s = q;
-      continue;
-    }
+    if (!q)
+      break;
 
-    *r = db::current()->create_node({}, false);
-    log("new root %d", r->index());
-    db::current()->set_p0(*r, p);
-    db::current()->insert_entry(*r, 0, k);
-    db::current()->set_parent(p, *r);
-    db::current()->set_parent(p1, *r);
+    s = q;
   }
 
+  *r = db::current()->create_node({}, false);
+  log("new root %d", r->index());
+  db::current()->set_p0(*r, p);
+  db::current()->insert_entry(*r, 0, k);
+  db::current()->set_parent(p, *r);
+  db::current()->set_parent(p1, *r);
   return true;
 }
 } // namespace btree
