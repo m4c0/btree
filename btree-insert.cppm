@@ -28,9 +28,11 @@ template <typename Tp> bool insert(db::nnid *r, db::nnid y, Tp v) {
   }
 
   db::key<Tp> k{y, v};
-wanna_be_loop:
-  auto &node = insert_entry_in_p(s, k);
-  if (node.size == db::node_limit + 1) {
+  while (true) {
+    auto &node = insert_entry_in_p(s, k);
+    if (node.size < db::node_limit + 1)
+      return true;
+
     log("spliting %d", s.index());
     auto p = s;
     auto p1 = db::current()->create_node(node.parent, node.leaf);
@@ -47,7 +49,7 @@ wanna_be_loop:
     auto q = node.parent;
     if (q) {
       s = q;
-      goto wanna_be_loop;
+      continue;
     }
 
     *r = db::current()->create_node({}, false);
