@@ -1,5 +1,6 @@
 export module btree:insert;
 import :db;
+import :retrieve;
 
 export namespace btree {
 template <typename Tp> auto &insert_entry_in_p(db::nnid s, db::key<Tp> k) {
