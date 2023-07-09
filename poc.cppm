@@ -29,23 +29,26 @@ void dump_tree(db::nnid id) {
   dump_node(id, 0, la);
 }
 
-bool check_all(db::nnid id, unsigned la) {
+void check_all(db::nnid id, unsigned &la) {
   auto &node = db::current()->read<long>(id);
-  if (!node.leaf && !check_all(node.p0, la))
-    return false;
+  if (!node.leaf)
+    check_all(node.p0, la);
+
   for (auto i = 0; i < node.size; i++) {
     auto k = node.k[i];
     if (k.ai <= la)
-      return false;
+      throw 0;
+
     la = k.ai;
-    if (!node.leaf && !check_all(k.pi, la))
-      return false;
+    if (!node.leaf)
+      check_all(k.pi, la);
   }
-  return true;
 }
 void check_all(db::nnid root) {
   unsigned la{};
-  if (!check_all(root, la)) {
+  try {
+    check_all(root, la);
+  } catch (...) {
     log("inconsistent tree with root = %d", root.index());
     dump_tree(root);
     throw test_failed{};
