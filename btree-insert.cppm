@@ -1,6 +1,5 @@
 export module btree:insert;
 import :db;
-export import :log;
 
 export namespace btree {
 template <typename Tp> auto &insert_entry_in_p(db::nnid s, db::key<Tp> k) {
@@ -22,7 +21,6 @@ template <typename Tp> bool insert(db::nnid *r, db::nnid y, Tp v) {
 
   if (!s) {
     *r = db::current()->create_node({}, true);
-    log("creating root %d", r->index());
     db::current()->insert_entry(*r, 0, db::key<Tp>{y, v});
     return true;
   }
@@ -37,7 +35,6 @@ template <typename Tp> bool insert(db::nnid *r, db::nnid y, Tp v) {
 
     p = s;
     p1 = db::current()->create_node(node.parent, node.leaf);
-    log("spliting %d to %d", p.index(), p1.index());
     for (auto i = 0; i < db::node_lower_limit; i++) {
       auto key = node.k[i + db::node_lower_limit + 1];
       db::current()->insert_entry(p1, i, key);
@@ -61,7 +58,6 @@ template <typename Tp> bool insert(db::nnid *r, db::nnid y, Tp v) {
   }
 
   *r = db::current()->create_node({}, false);
-  log("new root %d", r->index());
   db::current()->set_p0(*r, p);
   db::current()->insert_entry(*r, 0, k);
   db::current()->set_parent(p, *r);

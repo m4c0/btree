@@ -9,8 +9,8 @@ class test_failed {};
 
 void dump_node(db::nnid id, unsigned ind, unsigned &la) {
   auto &node = db::current()->read<long>(id);
-  log("%*snode: %d - s:%d p:%d l:%d", ind, "", id.index(), node.size,
-      node.parent.index(), ind);
+  silog::log(silog::debug, "%*snode: %d - s:%d p:%d l:%d", ind, "", id.index(),
+             node.size, node.parent.index(), ind);
 
   ind++;
   if (!node.leaf)
@@ -18,7 +18,8 @@ void dump_node(db::nnid id, unsigned ind, unsigned &la) {
   for (auto i = 0; i < node.size; i++) {
     auto k = node.k[i];
     char fill = (k.ai <= la) ? '!' : ' ';
-    log("%c%*si=%d k=%d v=%ld", fill, ind - 1, "", i, k.xi.index(), k.ai);
+    silog::log(silog::debug, "%c%*si=%d k=%d v=%ld", fill, ind - 1, "", i,
+               k.xi.index(), k.ai);
     la = k.ai;
     if (!node.leaf)
       dump_node(k.pi, ind, la);
@@ -49,7 +50,7 @@ void check_all(db::nnid root) {
   try {
     check_all(root, la);
   } catch (...) {
-    log("inconsistent tree with root = %d", root.index());
+    silog::log(silog::error, "inconsistent tree with root = %d", root.index());
     dump_tree(root);
     throw test_failed{};
   };
@@ -57,7 +58,7 @@ void check_all(db::nnid root) {
 
 void check(auto &t, unsigned id) {
   if (!t.has(db::nnid{id})) {
-    log("missing id %d", id);
+    silog::log(silog::error, "missing id %d", id);
     dump_tree(t.root());
     throw test_failed{};
   }
@@ -65,7 +66,7 @@ void check(auto &t, unsigned id) {
 }
 void insert(auto &t, unsigned id) {
   if (!t.insert(db::nnid{id}, id * 100)) {
-    log("insert failed for id %d", id);
+    silog::log(silog::error, "insert failed for id %d", id);
     dump_tree(t.root());
     throw test_failed{};
   }
@@ -95,7 +96,6 @@ void run() {
   tree<long> t{};
   silog::log(silog::info, "inserting");
   for (auto n : all) {
-    log("insert/check %d", n);
     insert(t, n);
     check(t, n);
   }
