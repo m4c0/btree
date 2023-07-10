@@ -119,6 +119,4 @@ public:
   }
 };
 
-storage *&current() noexcept;
-
 } // namespace btree::db

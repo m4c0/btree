@@ -6,19 +6,37 @@ import :remove;
 
 namespace btree {
 export class tree {
+  // Eventually, storage will be platform-dependent, therefore, let's leave it
+  // outside the tree for now
+  db::storage *m_storage;
   db::nnid m_root{};
 
 public:
+  explicit constexpr tree(db::storage *s) : m_storage{s} {}
+
   [[nodiscard]] constexpr auto root() const noexcept { return m_root; }
 
-  [[nodiscard]] auto get(db::nnid y) const {
+  [[nodiscard]] constexpr auto get(db::nnid y) {
     db::nnid s{};
-    return retrieve(m_root, y, &s);
+    return retrieve(m_storage, m_root, y, &s);
   }
-  [[nodiscard]] bool has(db::nnid y) const { return !!get(y); }
+  [[nodiscard]] constexpr bool has(db::nnid y) { return !!get(y); }
 
-  bool insert(db::nnid y, db::nnid v) { return btree::insert(&m_root, y, v); }
+  constexpr bool insert(db::nnid y, db::nnid v) {
+    return btree::insert(m_storage, &m_root, y, v);
+  }
 
-  bool remove(db::nnid y) { return btree::remove(&m_root, y); }
+  constexpr bool remove(db::nnid y) {
+    return btree::remove(m_storage, &m_root, y);
+  }
 };
-}; // namespace btree
+} // namespace btree
+
+module :private;
+
+static_assert([] {
+  btree::db::storage s{};
+  btree::tree t{&s};
+
+  return true;
+}());

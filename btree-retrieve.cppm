@@ -2,7 +2,7 @@ export module btree:retrieve;
 import :db;
 
 namespace btree {
-db::nnid retrieve(db::nnid r, db::nnid y, db::nnid *s) {
+db::nnid retrieve(db::storage *dbs, db::nnid r, db::nnid y, db::nnid *s) {
   db::nnid p = r;
   *s = {};
 
@@ -10,7 +10,7 @@ lbl:
   while (p) {
     *s = p;
 
-    auto node = db::current()->read(p);
+    auto node = dbs->read(p);
     if (y < node.k[0].xi) {
       p = node.p0;
       continue;

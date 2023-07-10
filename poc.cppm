@@ -7,8 +7,10 @@ using namespace btree;
 
 class test_failed {};
 
+static btree::db::storage dbs{};
+
 void dump_node(db::nnid id, unsigned ind, unsigned &la) {
-  auto &node = db::current()->read(id);
+  auto &node = dbs.read(id);
   silog::log(silog::debug, "%*snode: %d - s:%d p:%d l:%d", ind, "", id.index(),
              node.size, node.parent.index(), ind);
 
@@ -31,7 +33,7 @@ void dump_tree(db::nnid id) {
 }
 
 void check_all(db::nnid id, db::nnid parent, unsigned &la) {
-  auto &node = db::current()->read(id);
+  auto &node = dbs.read(id);
   if (node.parent && node.size < db::node_lower_limit) {
     silog::log(silog::error, "node %d with size %d", id.index(), node.size);
     throw 0;
@@ -125,10 +127,7 @@ void run(auto &t) {
   }
 }
 extern "C" int main() {
-  db::storage s{};
-  db::current() = &s;
-
-  tree t{};
+  tree t{&dbs};
   try {
     silog::log(silog::warning, "test started");
     run(t);

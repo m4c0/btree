@@ -3,26 +3,26 @@ import :db;
 import :retrieve;
 
 namespace btree {
-auto &insert_entry_in_p(db::nnid s, db::key k) {
-  auto &node = db::current()->read(s);
+auto &insert_entry_in_p(db::storage *dbs, db::nnid s, db::key k) {
+  auto &node = dbs->read(s);
   for (auto i = 0; i < node.size; i++) {
     if (k.xi < node.k[i].xi) {
-      db::current()->insert_entry(s, i, k);
+      dbs->insert_entry(s, i, k);
       return node;
     }
   }
-  db::current()->insert_entry(s, node.size, k);
+  dbs->insert_entry(s, node.size, k);
   return node;
 }
 
-bool insert(db::nnid *r, db::nnid y, db::nnid v) {
+bool insert(db::storage *dbs, db::nnid *r, db::nnid y, db::nnid v) {
   db::nnid s{};
-  if (retrieve(*r, y, &s))
+  if (retrieve(dbs, *r, y, &s))
     return false;
 
   if (!s) {
-    *r = db::current()->create_node({}, true);
-    db::current()->insert_entry(*r, 0, db::key{y, v});
+    *r = dbs->create_node({}, true);
+    dbs->insert_entry(*r, 0, db::key{y, v});
     return true;
   }
 
@@ -30,23 +30,23 @@ bool insert(db::nnid *r, db::nnid y, db::nnid v) {
   db::nnid p1;
   db::key k{y, v};
   while (true) {
-    auto &node = insert_entry_in_p(s, k);
+    auto &node = insert_entry_in_p(dbs, s, k);
     if (node.size < db::node_limit + 1)
       return true;
 
     p = s;
-    p1 = db::current()->create_node(node.parent, node.leaf);
+    p1 = dbs->create_node(node.parent, node.leaf);
     for (auto i = 0; i < db::node_lower_limit; i++) {
       auto key = node.k[i + db::node_lower_limit + 1];
-      db::current()->insert_entry(p1, i, key);
+      dbs->insert_entry(p1, i, key);
       if (key.pi)
-        db::current()->set_parent(key.pi, p1);
+        dbs->set_parent(key.pi, p1);
     }
     auto p1p0 = node.k[db::node_lower_limit].pi;
-    db::current()->set_p0(p1, p1p0);
+    dbs->set_p0(p1, p1p0);
     if (p1p0)
-      db::current()->set_parent(p1p0, p1);
-    db::current()->set_size(p, db::node_lower_limit);
+      dbs->set_parent(p1p0, p1);
+    dbs->set_size(p, db::node_lower_limit);
 
     k = node.k[db::node_lower_limit];
     k.pi = p1;
@@ -58,11 +58,11 @@ bool insert(db::nnid *r, db::nnid y, db::nnid v) {
     s = q;
   }
 
-  *r = db::current()->create_node({}, false);
-  db::current()->set_p0(*r, p);
-  db::current()->insert_entry(*r, 0, k);
-  db::current()->set_parent(p, *r);
-  db::current()->set_parent(p1, *r);
+  *r = dbs->create_node({}, false);
+  dbs->set_p0(*r, p);
+  dbs->insert_entry(*r, 0, k);
+  dbs->set_parent(p, *r);
+  dbs->set_parent(p1, *r);
   return true;
 }
 } // namespace btree
