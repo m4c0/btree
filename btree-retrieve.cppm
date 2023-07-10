@@ -7,7 +7,6 @@ constexpr db::nnid retrieve(db::storage *dbs, db::nnid r, db::nnid y,
   db::nnid p = r;
   *s = {};
 
-lbl:
   while (p) {
     *s = p;
 
@@ -17,18 +16,18 @@ lbl:
       continue;
     }
 
-    for (auto i = 0; i < node.size; i++) {
+    unsigned i;
+    for (i = 0U; i < node.size; i++) {
       auto xi = node.k[i].xi;
       auto xi1 = node.k[i + 1].xi;
       if (y == xi) {
         return node.k[i].ai;
       }
-      if (xi < y && y < xi1) {
-        p = node.k[i].pi;
-        goto lbl;
+      if (y < xi) {
+        break;
       }
     }
-    p = node.k[node.size - 1].pi;
+    p = node.k[i - 1].pi;
   }
   return {};
 }
