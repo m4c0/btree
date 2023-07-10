@@ -26,49 +26,36 @@ public:
   }
 };
 
-template <typename Tp> struct key {
+struct key {
   nnid xi{};
-  Tp ai{};
+  nnid ai{};
   nnid pi{};
 };
 
-template <typename Tp> struct node;
-template <> struct node<void> {
+struct node {
   nnid parent{};
   bool leaf{};
   bool in_use{};
   unsigned size{};
   nnid p0{};
-};
-template <typename Tp> struct node : node<void> {
-  key<Tp> k[node_limit + 1]{};
+  key k[node_limit + 1]{};
 };
 
-template <typename Tp> class alpha_storage;
-template <> class alpha_storage<void> {
-public:
-  virtual ~alpha_storage() = default;
-
-  [[nodiscard]] virtual node<void> &get(nnid id, bool in_use) = 0;
-  [[nodiscard]] virtual nnid find_unused_node() = 0;
-};
-template <typename Tp>
-class alpha_storage : public alpha_storage<void>, public hai::array<node<Tp>> {
+class storage {
   static constexpr const auto initial_cap = 128;
   static constexpr const auto resize_cap = 128;
-  using bro = hai::array<node<Tp>>;
 
-public:
-  using bro::bro;
+  hai::array<node> m_nodes{initial_cap};
 
-  [[nodiscard]] node<void> &get(nnid id, bool in_use) override {
+  [[nodiscard]] node &get(nnid id) { return get(id, true); }
+  [[nodiscard]] node &get(nnid id, bool in_use) {
     unsigned idx = id.index();
-    if (idx >= this->size()) {
+    if (idx >= m_nodes.size()) {
       silog::log(silog::error, "attempt of reading node past end: %d", idx);
       throw inconsistency_error();
     }
 
-    auto &res = (*this)[idx];
+    auto &res = m_nodes[idx];
     if (res.in_use != in_use) {
       silog::log(silog::error, "attempt of reading node not in use: %d", idx);
       throw inconsistency_error();
@@ -76,67 +63,54 @@ public:
     return res;
   }
 
-  [[nodiscard]] nnid find_unused_node() override {
-    for (auto i = 0U; i < this->size(); i++) {
-      auto &n = (*this)[i];
+  [[nodiscard]] nnid find_unused_node() {
+    for (auto i = 0U; i < m_nodes.size(); i++) {
+      auto &n = m_nodes[i];
       if (!n.in_use) {
         return nnid{i};
       }
     }
-    auto i = this->size();
-    this->add_capacity(resize_cap);
+    auto i = m_nodes.size();
+    m_nodes.add_capacity(resize_cap);
     return nnid{i};
   }
-};
-
-class storage {
-  hai::uptr<alpha_storage<void>> m_nodes;
-
-  template <typename Tp> [[nodiscard]] node<Tp> &get(nnid id) {
-    return static_cast<node<Tp> &>(m_nodes->get(id, true));
-  }
-  [[nodiscard]] auto &getv(nnid id) { return m_nodes->get(id, true); }
 
 public:
-  template <typename Tp> storage(Tp) : m_nodes{new alpha_storage<Tp>()} {}
-
-  template <typename Tp> [[nodiscard]] const node<Tp> &read(nnid id) {
-    return get<Tp>(id);
-  }
+  [[nodiscard]] const node &read(nnid id) { return get(id); }
 
   [[nodiscard]] nnid create_node(nnid p, bool leaf) {
-    auto res = m_nodes->find_unused_node();
-    auto &n = m_nodes->get(res, false);
+    auto res = find_unused_node();
+    auto &n = get(res, false);
     n.parent = p;
     n.leaf = leaf;
     n.in_use = true;
     return res;
   }
-  void delete_node(nnid n) { getv(n) = {}; }
+  void delete_node(nnid n) { get(n) = {}; }
 
-  void set_parent(nnid n, nnid p) { getv(n).parent = p; }
-  void set_p0(nnid p, nnid p0) { getv(p).p0 = p0; }
-  void set_size(nnid p, unsigned s) { getv(p).size = s; }
+  void set_parent(nnid n, nnid p) { get(n).parent = p; }
+  void set_p0(nnid p, nnid p0) { get(p).p0 = p0; }
+  void set_size(nnid p, unsigned s) { get(p).size = s; }
 
-  template <typename Tp> void insert_entry(nnid p, unsigned idx, key<Tp> k) {
-    auto &node = get<Tp>(p);
+  void insert_entry(nnid p, unsigned idx, key k) {
+    auto &node = get(p);
     for (auto i = node.size; i > idx; i--) {
       node.k[i] = node.k[i - 1];
     }
     node.k[idx] = k;
     node.size++;
   }
-  template <typename Tp> void append_entry(nnid p, key<Tp> k) {
-    auto &node = get<Tp>(p);
+  void append_entry(nnid p, key k) {
+    auto &node = get(p);
     node.k[node.size++] = k;
   }
-  template <typename Tp> void set_entry(nnid p, unsigned idx, key<Tp> k) {
-    auto &node = get<Tp>(p);
+  void set_entry(nnid p, unsigned idx, key k) {
+    auto &node = get(p);
     node.k[idx] = k;
   }
 
-  template <typename Tp> auto remove_entry(nnid p, unsigned idx) {
-    auto &node = get<Tp>(p);
+  auto remove_entry(nnid p, unsigned idx) {
+    auto &node = get(p);
     for (auto i = idx; i < node.size; i++) {
       node.k[i] = node.k[i + 1];
     }
