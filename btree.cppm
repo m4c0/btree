@@ -16,11 +16,11 @@ public:
 
   [[nodiscard]] constexpr auto root() const noexcept { return m_root; }
 
-  [[nodiscard]] constexpr auto get(db::nnid y) {
+  [[nodiscard]] constexpr auto get(db::nnid y) const {
     db::nnid s{};
     return retrieve(m_storage, m_root, y, &s);
   }
-  [[nodiscard]] constexpr bool has(db::nnid y) { return !!get(y); }
+  [[nodiscard]] constexpr bool has(db::nnid y) const { return !!get(y); }
 
   constexpr bool insert(db::nnid y, db::nnid v) {
     return btree::insert(m_storage, &m_root, y, v);
