@@ -3,7 +3,7 @@ import :db;
 import :retrieve;
 
 namespace btree {
-auto &insert_entry_in_p(db::storage *dbs, db::nnid s, db::key k) {
+constexpr auto &insert_entry_in_p(db::storage *dbs, db::nnid s, db::key k) {
   auto &node = dbs->read(s);
   for (auto i = 0; i < node.size; i++) {
     if (k.xi < node.k[i].xi) {
@@ -15,7 +15,7 @@ auto &insert_entry_in_p(db::storage *dbs, db::nnid s, db::key k) {
   return node;
 }
 
-bool insert(db::storage *dbs, db::nnid *r, db::nnid y, db::nnid v) {
+constexpr bool insert(db::storage *dbs, db::nnid *r, db::nnid y, db::nnid v) {
   db::nnid s{};
   if (retrieve(dbs, *r, y, &s))
     return false;

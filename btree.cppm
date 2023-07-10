@@ -34,9 +34,15 @@ public:
 
 module :private;
 
+// Just testing if btree is constexpr-able. Real tests are in POC
 static_assert([] {
-  btree::db::storage s{};
-  btree::tree t{&s};
+  using namespace btree;
 
-  return true;
+  db::storage s{};
+  tree t{&s};
+
+  t.insert(db::nnid{99}, db::nnid{11});
+  t.remove(db::nnid{99});
+
+  return !t.has(db::nnid{99});
 }());

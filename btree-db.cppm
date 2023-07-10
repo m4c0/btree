@@ -47,8 +47,8 @@ class storage {
 
   hai::array<node> m_nodes{initial_cap};
 
-  [[nodiscard]] node &get(nnid id) { return get(id, true); }
-  [[nodiscard]] node &get(nnid id, bool in_use) {
+  [[nodiscard]] constexpr node &get(nnid id) { return get(id, true); }
+  [[nodiscard]] constexpr node &get(nnid id, bool in_use) {
     unsigned idx = id.index();
     if (idx >= m_nodes.size()) {
       silog::log(silog::error, "attempt of reading node past end: %d", idx);
@@ -63,7 +63,7 @@ class storage {
     return res;
   }
 
-  [[nodiscard]] nnid find_unused_node() {
+  [[nodiscard]] constexpr nnid find_unused_node() {
     for (auto i = 0U; i < m_nodes.size(); i++) {
       auto &n = m_nodes[i];
       if (!n.in_use) {
@@ -76,9 +76,9 @@ class storage {
   }
 
 public:
-  [[nodiscard]] const node &read(nnid id) { return get(id); }
+  [[nodiscard]] constexpr const node &read(nnid id) { return get(id); }
 
-  [[nodiscard]] nnid create_node(nnid p, bool leaf) {
+  [[nodiscard]] constexpr nnid create_node(nnid p, bool leaf) {
     auto res = find_unused_node();
     auto &n = get(res, false);
     n.parent = p;
@@ -86,13 +86,13 @@ public:
     n.in_use = true;
     return res;
   }
-  void delete_node(nnid n) { get(n) = {}; }
+  constexpr void delete_node(nnid n) { get(n) = {}; }
 
-  void set_parent(nnid n, nnid p) { get(n).parent = p; }
-  void set_p0(nnid p, nnid p0) { get(p).p0 = p0; }
-  void set_size(nnid p, unsigned s) { get(p).size = s; }
+  constexpr void set_parent(nnid n, nnid p) { get(n).parent = p; }
+  constexpr void set_p0(nnid p, nnid p0) { get(p).p0 = p0; }
+  constexpr void set_size(nnid p, unsigned s) { get(p).size = s; }
 
-  void insert_entry(nnid p, unsigned idx, key k) {
+  constexpr void insert_entry(nnid p, unsigned idx, key k) {
     auto &node = get(p);
     for (auto i = node.size; i > idx; i--) {
       node.k[i] = node.k[i - 1];
@@ -100,16 +100,16 @@ public:
     node.k[idx] = k;
     node.size++;
   }
-  void append_entry(nnid p, key k) {
+  constexpr void append_entry(nnid p, key k) {
     auto &node = get(p);
     node.k[node.size++] = k;
   }
-  void set_entry(nnid p, unsigned idx, key k) {
+  constexpr void set_entry(nnid p, unsigned idx, key k) {
     auto &node = get(p);
     node.k[idx] = k;
   }
 
-  auto remove_entry(nnid p, unsigned idx) {
+  constexpr auto remove_entry(nnid p, unsigned idx) {
     auto &node = get(p);
     for (auto i = idx; i < node.size; i++) {
       node.k[i] = node.k[i + 1];

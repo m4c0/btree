@@ -2,7 +2,8 @@ export module btree:retrieve;
 import :db;
 
 namespace btree {
-db::nnid retrieve(db::storage *dbs, db::nnid r, db::nnid y, db::nnid *s) {
+constexpr db::nnid retrieve(db::storage *dbs, db::nnid r, db::nnid y,
+                            db::nnid *s) {
   db::nnid p = r;
   *s = {};
 

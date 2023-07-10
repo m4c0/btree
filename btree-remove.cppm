@@ -4,7 +4,8 @@ import :retrieve;
 export import hai;
 
 namespace btree {
-unsigned find_bro_in_node(db::storage *dbs, db::nnid parent, db::nnid *p) {
+constexpr unsigned find_bro_in_node(db::storage *dbs, db::nnid parent,
+                                    db::nnid *p) {
   auto &node = dbs->read(parent);
   if (*p == node.p0)
     return 0;
@@ -23,7 +24,7 @@ unsigned find_bro_in_node(db::storage *dbs, db::nnid parent, db::nnid *p) {
   return node.size - 1;
 }
 
-unsigned find_y_in_node(db::storage *dbs, db::nnid n, db::nnid y) {
+constexpr unsigned find_y_in_node(db::storage *dbs, db::nnid n, db::nnid y) {
   auto &node = dbs->read(n);
   for (auto i = 0U; i < node.size; i++) {
     if (node.k[i].xi == y)
@@ -33,14 +34,14 @@ unsigned find_y_in_node(db::storage *dbs, db::nnid n, db::nnid y) {
   throw db::inconsistency_error{};
 }
 
-auto find_first_leaf(db::storage *dbs, db::nnid n) {
+constexpr auto find_first_leaf(db::storage *dbs, db::nnid n) {
   auto node = dbs->read(n);
   if (node.leaf)
     return n;
   return find_first_leaf(dbs, node.p0);
 }
 
-void change_parenthood(db::storage *dbs, db::nnid from, db::nnid to) {
+constexpr void change_parenthood(db::storage *dbs, db::nnid from, db::nnid to) {
   auto &node = dbs->read(from);
   if (node.leaf)
     return;
@@ -51,7 +52,7 @@ void change_parenthood(db::storage *dbs, db::nnid from, db::nnid to) {
   }
 }
 
-void catenate(db::storage *dbs, db::nnid p) {
+constexpr void catenate(db::storage *dbs, db::nnid p) {
   auto q = dbs->read(p).parent;
   if (!q)
     return;
@@ -110,7 +111,7 @@ void catenate(db::storage *dbs, db::nnid p) {
   }
 }
 
-bool remove(db::storage *dbs, db::nnid *root, db::nnid y) {
+constexpr bool remove(db::storage *dbs, db::nnid *root, db::nnid y) {
   db::nnid p{};
   if (!retrieve(dbs, *root, y, &p))
     return false;
