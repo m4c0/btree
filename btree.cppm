@@ -17,6 +17,7 @@ public:
       : m_storage{s}, m_root{r} {}
 
   [[nodiscard]] constexpr auto root() const noexcept { return m_root; }
+  constexpr void set_root(db::nnid r) noexcept { m_root = r; }
 
   [[nodiscard]] constexpr auto get(db::nnid y) const {
     db::nnid s{};
