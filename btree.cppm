@@ -13,6 +13,8 @@ export class tree {
 
 public:
   explicit constexpr tree(db::storage *s) : m_storage{s} {}
+  explicit constexpr tree(db::storage *s, db::nnid r)
+      : m_storage{s}, m_root{r} {}
 
   [[nodiscard]] constexpr auto root() const noexcept { return m_root; }
 
