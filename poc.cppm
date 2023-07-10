@@ -8,7 +8,7 @@ using namespace btree;
 class test_failed {};
 
 void dump_node(db::nnid id, unsigned ind, unsigned &la) {
-  auto &node = db::current()->read<long>(id);
+  auto &node = db::current()->read(id);
   silog::log(silog::debug, "%*snode: %d - s:%d p:%d l:%d", ind, "", id.index(),
              node.size, node.parent.index(), ind);
 
@@ -17,10 +17,10 @@ void dump_node(db::nnid id, unsigned ind, unsigned &la) {
     dump_node(node.p0, ind, la);
   for (auto i = 0; i < node.size; i++) {
     auto k = node.k[i];
-    char fill = (k.ai <= la) ? '!' : ' ';
-    silog::log(silog::debug, "%c%*si=%d k=%d v=%ld", fill, ind - 1, "", i,
-               k.xi.index(), k.ai);
-    la = k.ai;
+    char fill = (k.ai.index() <= la) ? '!' : ' ';
+    silog::log(silog::debug, "%c%*si=%d k=%d v=%d", fill, ind - 1, "", i,
+               k.xi.index(), k.ai.index());
+    la = k.ai.index();
     if (!node.leaf)
       dump_node(k.pi, ind, la);
   }
@@ -31,7 +31,7 @@ void dump_tree(db::nnid id) {
 }
 
 void check_all(db::nnid id, db::nnid parent, unsigned &la) {
-  auto &node = db::current()->read<long>(id);
+  auto &node = db::current()->read(id);
   if (node.parent && node.size < db::node_lower_limit) {
     silog::log(silog::error, "node %d with size %d", id.index(), node.size);
     throw 0;
@@ -47,10 +47,10 @@ void check_all(db::nnid id, db::nnid parent, unsigned &la) {
 
   for (auto i = 0; i < node.size; i++) {
     auto k = node.k[i];
-    if (k.ai <= la)
+    if (k.ai.index() <= la)
       throw 0;
 
-    la = k.ai;
+    la = k.ai.index();
     if (!node.leaf)
       check_all(k.pi, id, la);
   }
@@ -73,7 +73,7 @@ void check(auto &t, unsigned id) {
   check_all(t.root());
 }
 void insert(auto &t, unsigned id) {
-  if (!t.insert(db::nnid{id}, id * 100)) {
+  if (!t.insert(db::nnid{id}, db::nnid{id * 10000})) {
     silog::log(silog::error, "insert failed for id %d", id);
     throw test_failed{};
   }
@@ -125,10 +125,10 @@ void run(auto &t) {
   }
 }
 extern "C" int main() {
-  db::storage s{0L};
+  db::storage s{};
   db::current() = &s;
 
-  tree<long> t{};
+  tree t{};
   try {
     silog::log(silog::warning, "test started");
     run(t);
