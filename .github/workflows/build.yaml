@@ -17,7 +17,7 @@ jobs:
         uses: m4c0/ecow/.github/actions/setup@main
       - name: 🧀 Prepare Deps
         uses: m4c0/btree/.github/actions/deps@main
-      - name: 🧀 Prepare Rng
+      - name: 🎱 Prepare Rng
         uses: m4c0/rng/.github/actions/deps@main
       - name: 🔨 Build
         uses: m4c0/ecow/.github/actions/compile@main

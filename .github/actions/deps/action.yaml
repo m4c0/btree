@@ -3,7 +3,6 @@ runs:
   using: composite
   steps:
     - uses: m4c0/hai/.github/actions/deps@main
-    - uses: m4c0/missingno/.github/actions/deps@main
     - uses: m4c0/silog/.github/actions/deps@main
     - uses: m4c0/ecow/.github/actions/checkout@main
       with:
