@@ -2,9 +2,9 @@ export module btree:insert;
 import :db;
 import :retrieve;
 
-export namespace btree {
-template <typename Tp> auto &insert_entry_in_p(db::nnid s, db::key<Tp> k) {
-  auto &node = db::current()->read<Tp>(s);
+namespace btree {
+auto &insert_entry_in_p(db::nnid s, db::key k) {
+  auto &node = db::current()->read(s);
   for (auto i = 0; i < node.size; i++) {
     if (k.xi < node.k[i].xi) {
       db::current()->insert_entry(s, i, k);
@@ -15,20 +15,20 @@ template <typename Tp> auto &insert_entry_in_p(db::nnid s, db::key<Tp> k) {
   return node;
 }
 
-template <typename Tp> bool insert(db::nnid *r, db::nnid y, Tp v) {
+bool insert(db::nnid *r, db::nnid y, db::nnid v) {
   db::nnid s{};
-  if (retrieve<Tp>(*r, y, &s))
+  if (retrieve(*r, y, &s))
     return false;
 
   if (!s) {
     *r = db::current()->create_node({}, true);
-    db::current()->insert_entry(*r, 0, db::key<Tp>{y, v});
+    db::current()->insert_entry(*r, 0, db::key{y, v});
     return true;
   }
 
   db::nnid p;
   db::nnid p1;
-  db::key<Tp> k{y, v};
+  db::key k{y, v};
   while (true) {
     auto &node = insert_entry_in_p(s, k);
     if (node.size < db::node_limit + 1)
