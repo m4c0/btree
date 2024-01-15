@@ -19,7 +19,6 @@ constexpr db::nnid retrieve(db::storage *dbs, db::nnid r, db::nnid y,
     unsigned i;
     for (i = 0U; i < node.size; i++) {
       auto xi = node.k[i].xi;
-      auto xi1 = node.k[i + 1].xi;
       if (y == xi) {
         return node.k[i].ai;
       }
