@@ -1,3 +1,5 @@
+#pragma leco tool
+
 export module poc;
 import btree;
 import rng;
@@ -92,8 +94,6 @@ void remove(auto &t, unsigned id) {
 }
 
 void run(auto &t) {
-  using id = db::nnid;
-
   constexpr const auto max = 10240;
   unsigned all[max];
   for (auto i = 0U; i < max; i++) {
