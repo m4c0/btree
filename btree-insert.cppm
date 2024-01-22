@@ -30,13 +30,12 @@ constexpr bool insert(db::storage *dbs, db::nnid *r, db::nnid y, db::nnid v) {
   db::nnid p1;
   db::key k{y, v};
   while (true) {
-    auto &n = insert_entry_in_p(dbs, s, k);
-    if (n.size < db::node_limit + 1)
+    auto &node = insert_entry_in_p(dbs, s, k);
+    if (node.size < db::node_limit + 1)
       return true;
 
     p = s;
-    p1 = dbs->create_node(n.parent, n.leaf);
-    auto &node = dbs->read(s);
+    p1 = dbs->create_node(node.parent, node.leaf);
     for (auto i = 0; i < db::node_lower_limit; i++) {
       auto key = node.k[i + db::node_lower_limit + 1];
       dbs->insert_entry(p1, i, key);
